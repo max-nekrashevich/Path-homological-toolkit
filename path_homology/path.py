@@ -5,7 +5,7 @@ import numpy as np
 
 
 import path_homology.graph as g
-from path_homology import _params
+import path_homology as ph
 
 
 @dataclass(frozen=True)
@@ -25,9 +25,9 @@ class Path(object):
             formatted_term = "" if sign else "-"
         else:
             formatted_term = " + " if sign else " - "
-        if abs(coefficient - 1) > _params['eps']:
-            formatted_term += str(round(coefficient, _params['output_format']['n_decimal']))
-        formatted_term += _params['output_format']['epath_outer'].format(_params['output_format']['epath_delim'].join(map(str, path)))
+        if abs(coefficient - 1) > ph.params.eps:
+            formatted_term += str(round(coefficient, ph.params.n_decimal))
+        formatted_term += ph.params.epath_outer.format(ph.params.epath_delim.join(map(str, path)))
         return formatted_term
 
     def _get_terms(self) -> 'list[tuple[bool, float, g.EPath]]':
@@ -35,7 +35,7 @@ class Path(object):
         paths = self._graph.list_paths(self.length, self.allowed)
 
         for coef, path in zip(self.coefficients, paths): # type: ignore
-            if abs(coef) > _params['eps']:
+            if abs(coef) > ph.params.eps:
                 terms.append((coef > 0, abs(coef), path))
 
         return terms
@@ -53,7 +53,7 @@ class Path(object):
         return path_string
 
     def __repr__(self) -> str:
-        if not _params['output_format']['raw_repr']:
+        if not ph.params.raw_repr:
             return str(self)
         return f"{self.length}-Path({str(self.coefficients)}, graph_id={hex(id(self._graph))}, allowed={self.allowed}, invariant={self.invariant})"
 
@@ -92,7 +92,7 @@ class Path(object):
             return True
         paths = self._graph.list_paths(self.length, False)
         for i in self._graph._non_allowed_ix(self.length):
-            if abs(self.coefficients[self._graph._path_index(paths[i], self.allowed)]) > _params['eps']:
+            if abs(self.coefficients[self._graph._path_index(paths[i], self.allowed)]) > ph.params.eps:
                 return False
         return True
 

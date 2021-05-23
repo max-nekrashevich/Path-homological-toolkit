@@ -1,27 +1,34 @@
 from collections import Counter
 from itertools import product, chain
 from functools import lru_cache
-from typing import NewType
+from typing import Any, NewType
 
 
 import numpy as np
 
 
+import path_homology as ph
 import path_homology.path as p
 import path_homology.utils as u
-from path_homology import _params
 
 
-Vertex = NewType('Vertex', object)
-EPath = 'tuple[Vertex, ...]'
+Vertex = NewType('Vertex', Any)
+EPath = tuple[Vertex, ...]
+ListOfEdges = list[tuple[Vertex, Vertex]]
+Adjacency = dict[Vertex, list[Vertex]]
 
 
 class Graph(object):
 
-    def __init__(self, adjacency: 'dict[Vertex, list[Vertex]] | np.ndarray') -> None:
+    def __init__(self, adjacency: 'Adjacency | np.ndarray | ListOfEdges') -> None:
         super().__init__()
+
+        if isinstance(adjacency, list):
+            adjacency = u.adjacency_from_edges(adjacency)
+
         if isinstance(adjacency, np.ndarray):
             adjacency = u.adjacency_from_matrix(adjacency)
+
         assert u.check_adjacency(adjacency), "Graph representation is invalid."
         self._adjacency = adjacency
         self._vertex_order = dict(zip(adjacency, range(len(adjacency))))
@@ -65,14 +72,14 @@ class Graph(object):
 
     @lru_cache(maxsize=10)
     def _enum_all_paths(self, n: int) -> 'dict[EPath, int]':
-        if n < 0 and not _params['reduced']:
+        if n < 0 and not ph.params.reduced:
             return {}
         return {p: i for i, p in enumerate(product(self._adjacency, repeat=n+1))}
 
     @lru_cache(maxsize=20)
     def _enum_allowed_paths(self, n: int) -> 'dict[EPath, int]':
         if n < 0:
-            return {(): 0} if _params['reduced'] else {}
+            return {(): 0} if ph.params.reduced else {}
         if n == 0:
             return {(v, ) : i for v, i in self._vertex_order.items()}
 
@@ -125,7 +132,7 @@ class Graph(object):
                                       regular: bool = False,
                                       invariant: bool = False) -> np.ndarray:
         paths = self.list_paths(n, allowed or invariant)
-        if not _params['reduced'] and n == 0:
+        if not ph.params.reduced and n == 0:
             return np.zeros((0, len(paths)))
         d: np.ndarray = np.zeros((len(self._adjacency) ** n, len(paths)))
         for i, path in enumerate(paths):

@@ -1,12 +1,24 @@
-from collections import deque
+from collections import deque, defaultdict
 from copy import deepcopy
+from dataclasses import dataclass
+
 
 
 import numpy as np
 
 
+import path_homology as ph
 import path_homology.graph as g
-from path_homology import _params
+
+
+@dataclass()
+class Params:
+    eps: float = 1e-5
+    n_decimal: int = 2
+    epath_outer: str = '({})'
+    epath_delim: str = '→'
+    raw_repr: bool = False
+    reduced: bool = False
 
 
 def null_space(A, rcond=None):
@@ -20,7 +32,7 @@ def null_space(A, rcond=None):
     return Q
 
 
-def check_adjacency(adjacency: 'dict[g.Vertex, list[g.Vertex]]') -> bool:
+def check_adjacency(adjacency: 'g.Adjacency') -> bool:
     for neighbourhood in adjacency.values():
         for v in neighbourhood:
             if v not in adjacency:
@@ -28,8 +40,16 @@ def check_adjacency(adjacency: 'dict[g.Vertex, list[g.Vertex]]') -> bool:
     return True
 
 
-def adjacency_from_matrix(adjacency_matrix: np.ndarray) -> 'dict[g.Vertex, list[g.Vertex]]':
+def adjacency_from_matrix(adjacency_matrix: np.ndarray) -> 'g.Adjacency':
     return {v: np.where(edge_to)[0].tolist() for v, edge_to in enumerate(adjacency_matrix)}
+
+
+def adjacency_from_edges(list_of_edjes: 'g.ListOfEdges') -> 'g.Adjacency':
+    adjacency = defaultdict(list)
+    for start, end in list_of_edjes:
+        adjacency[start].append(end)
+        adjacency[end]
+    return adjacency
 
 
 def to_undirected_graph(adjacency):
@@ -61,7 +81,7 @@ def connected_components(undirected_graph):
 
 def compute_path_homology_dimension(graph: 'g.Graph', dim: int, regular: bool = False) -> int:
     graph = graph.prune()
-    if _params['reduced']:
+    if ph.params.reduced:
         return graph.get_dimH_n(dim, regular)
     subgraphs = graph.split()
     if dim == 0:

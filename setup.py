@@ -7,7 +7,7 @@ with open('README.md') as file:
 setup(
     name='path-homology-toolkit',
     packages=['path_homology'],
-    version='0.1.2',
+    version='0.1.3',
     description='The algorithm for computing path homology',
     author='Maksim Nekrashevich',
     author_email='mvnekrashevich@edu.hse.ru',
@@ -23,6 +23,6 @@ setup(
         "Environment :: Other Environment",
         "Topic :: Scientific/Engineering :: Mathematics"
     ],
-    python_requires=">=3.8"
+    python_requires=">=3.9"
 
 )

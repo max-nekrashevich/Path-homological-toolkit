@@ -18,7 +18,7 @@ clone the repository and run the following line
 
 ## Acknowledgements
 
-TBD
+International Laboratory of Algebraic Topology and its Applications, Higher School of Economics https://cs.hse.ru/en/ata-lab/about
 
 ## Parameters
 

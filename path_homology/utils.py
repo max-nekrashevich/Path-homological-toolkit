@@ -3,7 +3,6 @@ from copy import deepcopy
 from dataclasses import dataclass
 
 
-
 import numpy as np
 
 
@@ -32,7 +31,7 @@ def null_space(A, rcond=None):
     return Q
 
 
-def check_adjacency(adjacency: 'g.Adjacency') -> bool:
+def check_adjacency(adjacency: g.Adjacency) -> bool:
     for neighbourhood in adjacency.values():
         for v in neighbourhood:
             if v not in adjacency:
@@ -40,11 +39,11 @@ def check_adjacency(adjacency: 'g.Adjacency') -> bool:
     return True
 
 
-def adjacency_from_matrix(adjacency_matrix: np.ndarray) -> 'g.Adjacency':
+def adjacency_from_matrix(adjacency_matrix: np.ndarray) -> g.Adjacency:
     return {v: np.where(edge_to)[0].tolist() for v, edge_to in enumerate(adjacency_matrix)}
 
 
-def adjacency_from_edges(list_of_edjes: 'g.ListOfEdges') -> 'g.Adjacency':
+def adjacency_from_edges(list_of_edjes: g.ListOfEdges) -> g.Adjacency:
     adjacency = defaultdict(list)
     for start, end in list_of_edjes:
         adjacency[start].append(end)
@@ -79,7 +78,7 @@ def connected_components(undirected_graph):
             yield component
 
 
-def compute_path_homology_dimension(graph: 'g.Graph', dim: int, regular: bool = False) -> int:
+def compute_path_homology_dimension(graph: g.Graph, dim: int, regular: bool = False) -> int:
     graph = graph.prune()
     if ph.params.reduced:
         return graph.get_dimH_n(dim, regular)
@@ -89,3 +88,17 @@ def compute_path_homology_dimension(graph: 'g.Graph', dim: int, regular: bool = 
     if not subgraphs:
         return 0
     return sum([subgraph.get_dimH_n(dim, regular) for subgraph in subgraphs])
+
+
+def Cycle(n: int, k: int = 1, vertex_labels: 'list[g.Vertex] | None' = None) -> g.Graph:
+    if vertex_labels is None:
+        vertex_labels = list(range(n))
+    adjacency = {vertex_labels[i]: [vertex_labels[(i + 1 + j) % n] for j in range(k)] for i in range(n)}
+    return g.Graph(adjacency)
+
+
+def Simplex(n: int, vertex_labels: 'list[g.Vertex] | None' = None) -> g.Graph:
+    if vertex_labels is None:
+        vertex_labels = list(range(n))
+    adjacency = {vertex_labels[i]: [vertex_labels[j] for j in range(i + 1, n)] for i in range(n)}
+    return g.Graph(adjacency)

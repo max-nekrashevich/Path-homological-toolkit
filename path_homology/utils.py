@@ -12,6 +12,12 @@ import path_homology.graph as g
 
 @dataclass()
 class Params:
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(Params, cls).__new__(cls)
+        return cls.instance
+
     eps: float = 1e-5
     n_decimal: int = 2
     epath_outer: str = '({})'
@@ -20,11 +26,10 @@ class Params:
     reduced: bool = False
 
 
-def null_space(A, rcond=None):
+def null_space(A):
     u, s, vh = np.linalg.svd(A, full_matrices=True)
     M, N = u.shape[0], vh.shape[1]
-    if rcond is None:
-        rcond = np.finfo(s.dtype).eps * max(M, N)
+    rcond = np.finfo(s.dtype).eps * max(M, N)
     tol = np.amax(s) * rcond
     num = np.sum(s > tol, dtype=int)
     Q = vh[num:,:].T.conj()

@@ -2,7 +2,7 @@ from collections import Counter
 from copy import deepcopy
 from itertools import product, chain
 from functools import lru_cache
-from typing import Any, Dict, Iterable, List, NewType, Tuple
+from typing import Any, Dict, Iterable, List, NewType, Set, Tuple
 
 
 import numpy as np
@@ -52,7 +52,7 @@ class Graph(object):
         return Graph(deepcopy(self._adjacency))
 
 
-    def add_vertex(self, to_add: 'Vertex') -> 'Graph':
+    def add_vertex(self, to_add: Vertex) -> 'Graph':
         self._adjacency.setdefault(to_add, [])
         self._vertex_order.setdefault(to_add, self.n_vertices)
         self.in_degrees.setdefault(to_add, 0)
@@ -61,13 +61,13 @@ class Graph(object):
         return self
 
 
-    def remove_vertices(self, to_remove: 'Iterable[Vertex]') -> 'Graph':
+    def remove_vertices(self, to_remove: Iterable[Vertex]) -> 'Graph':
         self._adjacency = {v: [u for u in neighbors if u not in to_remove] for v, neighbors in self._adjacency.items() if v not in to_remove}
         self._update_attributes()
         return self
 
 
-    def add_edge(self, start: 'Vertex', end: 'Vertex') -> 'Graph':
+    def add_edge(self, start: Vertex, end: Vertex) -> 'Graph':
         if start not in self._adjacency:
             self.add_vertex(start)
         if end not in self._adjacency:
@@ -79,7 +79,7 @@ class Graph(object):
         return self
 
 
-    def remove_edge(self, start: Vertex, end: 'Vertex') -> 'Graph':
+    def remove_edge(self, start: Vertex, end: Vertex) -> 'Graph':
         if start in self._adjacency and end in self._adjacency[start]:
             self._adjacency[start].remove(end)
         self.in_degrees[end] -= 1
@@ -94,15 +94,15 @@ class Graph(object):
         return self
 
 
-    def get_subgraph(self, vertices: 'Iterable[Vertex]') -> 'Graph':
+    def get_subgraph(self, vertices: Iterable[Vertex]) -> 'Graph':
         return Graph({v: [u for u in neighbors if u in vertices] for v, neighbors in self._adjacency.items() if v in vertices})
 
 
-    def get_in_leaves(self) -> 'set[Vertex]':
+    def get_in_leaves(self) -> Set[Vertex]:
         return {v for v in self._adjacency if self.in_degrees[v] == 1 and self.out_degrees[v] == 0}
 
 
-    def get_out_leaves(self) -> 'set[Vertex]':
+    def get_out_leaves(self) -> Set[Vertex]:
         return {v for v in self._adjacency if self.in_degrees[v] == 0 and self.out_degrees[v] == 1}
 
 
@@ -129,14 +129,14 @@ class Graph(object):
 
 
     @lru_cache(maxsize=10)
-    def _enum_all_paths(self, n: int) -> 'dict[EPath, int]':
+    def _enum_all_paths(self, n: int) -> Dict[EPath, int]:
         if n < 0 and not ph.params.reduced:
             return {}
         return {p: i for i, p in enumerate(product(self._adjacency, repeat=n+1))}
 
 
     @lru_cache(maxsize=20)
-    def _enum_allowed_paths(self, n: int) -> 'dict[EPath, int]':
+    def _enum_allowed_paths(self, n: int) -> Dict[EPath, int]:
         if n < 0:
             return {(): 0} if ph.params.reduced else {}
         if n == 0:
@@ -184,7 +184,7 @@ class Graph(object):
         return [i for i, path in enumerate(self.list_paths(n, False)) if path in allowed]
 
 
-    def from_epath(self, path: EPath, allowed: bool = False) -> 'p.Path':
+    def from_epath(self, path: EPath, allowed: bool = False) -> p.Path:
         coefficients = self._get_coef_shape(len(path) - 1, allowed)
         coefficients[self._path_index(path, allowed)] = 1
 
@@ -206,10 +206,10 @@ class Graph(object):
         return d[self._allowed_ix(n - 1)] if invariant else d
 
 
-    def get_A_n(self, dim: int) -> 'list[p.Path]':
+    def get_A_n(self, dim: int) -> List[p.Path]:
         return [self.from_epath(path) for path in self.list_paths(dim, True)]
 
-    def get_Omega_n(self, dim: int, regular: bool = False) -> 'list[p.Path]':
+    def get_Omega_n(self, dim: int, regular: bool = False) -> List[p.Path]:
         constraints = self.get_d_matrix(dim, regular=regular)[self._non_allowed_ix(dim - 1)]
         if constraints.shape[0] == 0:
             return self.get_A_n(dim)
@@ -219,7 +219,7 @@ class Graph(object):
         return [p.Path(self, weight, dim, True, True) for weight in weights]
 
 
-    def get_Z_n(self, dim: int, regular: bool = False) -> 'list[p.Path]':
+    def get_Z_n(self, dim: int, regular: bool = False) -> List[p.Path]:
         constraints = self.get_d_matrix(dim, regular=regular)
         if constraints.shape[0] == 0:
             return self.get_A_n(dim)

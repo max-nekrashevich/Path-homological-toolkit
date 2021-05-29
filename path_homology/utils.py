@@ -3,6 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 
 
+import galois as gl
 import numpy as np
 
 
@@ -24,9 +25,16 @@ class Params:
     epath_delim: str = '→'
     raw_repr: bool = False
     reduced: bool = False
+    order: int = 0
 
 
-def null_space(A):
+def null_space(A, order):
+    if order == 0:
+        return null_space_numpy(A)
+    return null_space_galois(A, order)
+
+
+def null_space_numpy(A):
     u, s, vh = np.linalg.svd(A, full_matrices=True)
     M, N = u.shape[0], vh.shape[1]
     rcond = np.finfo(s.dtype).eps * max(M, N)
@@ -34,6 +42,12 @@ def null_space(A):
     num = np.sum(s > tol, dtype=int)
     Q = vh[num:,:].T.conj()
     return Q
+
+
+def null_space_galois(A, order):
+    M, N = A.shape
+    ext_A = np.vstack([A, gl.GF(order).Identity(N)]).T # type: ignore
+    return ext_A.row_reduce(M)[M:, M:].T
 
 
 def check_adjacency(adjacency: g.Adjacency) -> bool:
@@ -45,7 +59,7 @@ def check_adjacency(adjacency: g.Adjacency) -> bool:
 
 
 def adjacency_from_matrix(adjacency_matrix: np.ndarray) -> g.Adjacency:
-    return {v: np.where(edge_to)[0].tolist() for v, edge_to in enumerate(adjacency_matrix)}
+    return {v: np.where(edge_to)[0].tolist() for v, edge_to in enumerate(adjacency_matrix)} # type: ignore
 
 
 def adjacency_from_edges(list_of_edjes: g.ListOfEdges) -> g.Adjacency:

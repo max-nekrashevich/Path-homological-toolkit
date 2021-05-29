@@ -1,5 +1,8 @@
 # Path homology toolkit
 
+
+**<h3 style="color: red"> This is a development branch. None of the code in this branch is expected to work! The code that works, will be occasionally pushed to the main branch. </h3>**
+
 This package provides the algorithm for computing path homology [[1]](#1) and basic path operations. 
 
 ## Features
@@ -10,11 +13,39 @@ The ``Path`` class implements the concept of the path as described in [[1]](#1).
 
 Currently, both regular and non-regular homology are supported. By default, the non-reduced homology is computed, however the algorithm can be configured to compute the reduced homology (see Parameters).
 
+
+## Development
+
+Currently working on the following features:
+
+- ``PathComplex`` class:
+    - [ ] Create ``BasePathComplex`` class with ``_enum_all_paths()`` and ``_enum_allowed_paths()`` virtual methods.
+    - [ ] Implement path homology for graphs through PathComplex. Graph contains ``GraphPathComplex`` attribute.
+- Finite fields:
+    - [x] Write ``null_space()`` for finite fields.
+    - [ ] Implement ``order`` parameter for path homology related methods.
+    - [ ] Benchmark.
+- Performance:
+    - [ ] Explore xla SVD from jax for faster ``null_space()``.
+- Enchancements:
+    - [ ] Work on typing.
+    - [ ] Review code style and structure.
+    - [ ] Reslove imports.
+    - [ ] Documentation.
+    - [ ] Polish README.md
+    - [ ] Sort out params.
+- Bright future:
+    - [ ] persistent path homology
+    - [ ] Path homology over rings + SymPy integration
+
+
 ## Installation
 
 clone the repository and run the following line
 
     pip install .
+
+## Usage
 
 ## Acknowledgements
 
@@ -27,3 +58,6 @@ The package provides global options that control the behavior of certain functio
 ## References
 <a id="1">[1]</a>
 Grigor'yan, A., Lin, Y., Muranov, Y., & Yau, S. T. (2012). Homologies of path complexes and digraphs. arXiv preprint arXiv:1207.2834.
+
+
+

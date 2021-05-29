@@ -1,14 +1,21 @@
 from collections import deque, defaultdict
 from copy import deepcopy
 from dataclasses import dataclass
+from typing import Tuple
 
 
-import galois as gl
 import numpy as np
 
+try:
+    import galois as gl
 
-import path_homology as ph
-import path_homology.graph as g
+except ImportError:
+    print("WARNING: Galois package not installed.")
+    print("         This package requires galois for finite field computations.")
+    print("         To install it run: $ pip install galois")
+
+
+from .types import *
 
 
 @dataclass()
@@ -24,14 +31,30 @@ class Params:
     epath_outer: str = '({})'
     epath_delim: str = '→'
     raw_repr: bool = False
-    reduced: bool = False
-    order: int = 0
+
+
+params = Params()
+
+
+def get_signs(order: int) -> tuple:
+    if order == 0:
+        return (1, -1)
+    else:
+        return (gl.GF(order)(1), gl.GF(order)(order - 1))
+
+
+def zeros(shape: 'int | Tuple[int, ...]', order: int) -> np.ndarray:
+    if order == 0:
+        return np.zeros(shape, int)
+    else:
+        return gl.GF(order).Zeros(shape) # type: ignore
 
 
 def null_space(A, order):
     if order == 0:
         return null_space_numpy(A)
-    return null_space_galois(A, order)
+    else:
+        return null_space_galois(A, order)
 
 
 def null_space_numpy(A):
@@ -46,11 +69,13 @@ def null_space_numpy(A):
 
 def null_space_galois(A, order):
     M, N = A.shape
-    ext_A = np.vstack([A, gl.GF(order).Identity(N)]).T # type: ignore
-    return ext_A.row_reduce(M)[M:, M:].T
+    ext_A = np.vstack([A, GF(order).Identity(N)]).T # type: ignore
+    red_A = ext_A.row_reduce(M)
+    num = np.sum(np.any(red_A[:N, :M] != 0, axis=1))
+    return red_A[num:, M:].T
 
 
-def check_adjacency(adjacency: g.Adjacency) -> bool:
+def check_adjacency(adjacency: Adjacency) -> bool:
     for neighbourhood in adjacency.values():
         for v in neighbourhood:
             if v not in adjacency:
@@ -58,11 +83,11 @@ def check_adjacency(adjacency: g.Adjacency) -> bool:
     return True
 
 
-def adjacency_from_matrix(adjacency_matrix: np.ndarray) -> g.Adjacency:
+def adjacency_from_matrix(adjacency_matrix: np.ndarray) -> Adjacency:
     return {v: np.where(edge_to)[0].tolist() for v, edge_to in enumerate(adjacency_matrix)} # type: ignore
 
 
-def adjacency_from_edges(list_of_edjes: g.ListOfEdges) -> g.Adjacency:
+def adjacency_from_edges(list_of_edjes: ListOfEdges) -> Adjacency:
     adjacency = defaultdict(list)
     for start, end in list_of_edjes:
         adjacency[start].append(end)
@@ -70,7 +95,7 @@ def adjacency_from_edges(list_of_edjes: g.ListOfEdges) -> g.Adjacency:
     return adjacency
 
 
-def to_undirected_graph(adjacency):
+def to_undirected_graph(adjacency: Adjacency) -> Adjacency:
     graph = deepcopy(adjacency)
     for v, neighbors in adjacency.items():
         for u in neighbors:
@@ -95,29 +120,3 @@ def connected_components(undirected_graph):
                         seen.add(neighbor)
                         queue.append(neighbor)
             yield component
-
-
-def compute_path_homology_dimension(graph: g.Graph, dim: int, regular: bool = False) -> int:
-    graph = graph.prune()
-    if ph.params.reduced:
-        return graph.get_dimH_n(dim, regular)
-    subgraphs = graph.split()
-    if dim == 0:
-        return len(subgraphs)
-    if not subgraphs:
-        return 0
-    return sum([subgraph.get_dimH_n(dim, regular) for subgraph in subgraphs])
-
-
-def Cycle(n: int, k: int = 1, vertex_labels: 'list[g.Vertex] | None' = None) -> g.Graph:
-    if vertex_labels is None:
-        vertex_labels = list(range(n))
-    adjacency = {vertex_labels[i]: [vertex_labels[(i + 1 + j) % n] for j in range(k)] for i in range(n)}
-    return g.Graph(adjacency)
-
-
-def Simplex(n: int, vertex_labels: 'list[g.Vertex] | None' = None) -> g.Graph:
-    if vertex_labels is None:
-        vertex_labels = list(range(n))
-    adjacency = {vertex_labels[i]: [vertex_labels[j] for j in range(i + 1, n)] for i in range(n)}
-    return g.Graph(adjacency)

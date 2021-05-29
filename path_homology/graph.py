@@ -1,21 +1,16 @@
 from collections import Counter
 from copy import deepcopy
-from itertools import product, chain
-from functools import lru_cache
-from typing import Any, Dict, Iterable, List, NewType, Set, Tuple
+from itertools import chain
+from typing import Iterable, List, Set
 
 
 import numpy as np
 
 
-import path_homology as ph
 import path_homology.path as p
 import path_homology.utils as u
+from .types import Adjacency, ListOfEdges, Vertex
 
-
-Vertex = NewType('Vertex', Any)
-ListOfEdges = List[Tuple[Vertex, Vertex]]
-Adjacency = Dict[Vertex, List[Vertex]]
 
 
 class Graph(object):
@@ -122,7 +117,7 @@ class Graph(object):
         return [self.get_subgraph(component) for component in u.connected_components(u.to_undirected_graph(self._adjacency))]
 
 
-    def from_epath(self, path: p.EPath, allowed: bool = False, order: int = ph.params.order) -> p.Path:
+    def from_epath(self, path: p.EPath, allowed: bool = False, order: int = 0) -> 'p.Path':
         return self._path_complex.from_epath(path, allowed, order)
 
 
@@ -133,17 +128,31 @@ class Graph(object):
         return self._path_complex.get_d_matrix(n, allowed=allowed, regular=regular, invariant=invariant, order=order)
 
 
-    def get_A_n(self, dim: int, order: int = ph.params.order) -> List[p.Path]:
+    def get_A_n(self, dim: int, order: int = 0) -> 'List[p.Path]':
         return self._path_complex.get_A_n(dim, order)
 
 
-    def get_Omega_n(self, dim: int, regular: bool = False, order: int = ph.params.order) -> List[p.Path]:
+    def get_Omega_n(self, dim: int, regular: bool = False, order: int = 0) -> 'List[p.Path]':
         return self._path_complex.get_Omega_n(dim, regular, order)
 
 
-    def get_Z_n(self, dim: int, regular: bool = False, order: int = ph.params.order) -> List[p.Path]:
+    def get_Z_n(self, dim: int, regular: bool = False, order: int = 0) -> 'List[p.Path]':
         return self._path_complex.get_Z_n(dim, regular, order)
 
 
-    def get_dimH_n(self, dim: int, regular: bool = False, order: int = ph.params.order) -> int:
+    def get_dimH_n(self, dim: int, regular: bool = False, order: int = 0) -> int:
         return self._path_complex.get_dimH_n(dim, regular, order)
+
+
+def Cycle(n: int, k: int = 1, vertex_labels: List[Vertex] = None) -> Graph:
+    if vertex_labels is None:
+        vertex_labels = list(range(n))
+    adjacency = {vertex_labels[i]: [vertex_labels[(i + 1 + j) % n] for j in range(k)] for i in range(n)}
+    return Graph(adjacency)
+
+
+def Simplex(n: int, vertex_labels: List[Vertex] = None) -> Graph:
+    if vertex_labels is None:
+        vertex_labels = list(range(n))
+    adjacency = {vertex_labels[i]: [vertex_labels[j] for j in range(i + 1, n)] for i in range(n)}
+    return Graph(adjacency)

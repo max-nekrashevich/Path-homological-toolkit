@@ -19,21 +19,21 @@ Currently, both regular and non-regular homology are supported. By default, the 
 Currently working on the following features:
 
 - ``PathComplex`` class:
-    - [v] Create ``BasePathComplex`` class with ``_enum_all_paths()`` and ``_enum_allowed_paths()`` virtual methods.
-    - [v] Implement path homology for graphs through PathComplex. Graph contains ``GraphPathComplex`` attribute.
+    - [x] Create ``BasePathComplex`` class with ``_enum_all_paths()`` and ``_enum_allowed_paths()`` virtual methods.
+    - [x] Implement path homology for graphs through PathComplex. Graph contains ``GraphPathComplex`` attribute.
 - Finite fields:
-    - [v] Write ``null_space()`` for finite fields.
-    - [*] Implement ``order`` parameter for path homology related methods.
+    - [x] Write ``null_space()`` for finite fields.
+    - [x] Implement ``order`` parameter for path homology related methods.
     - [ ] Benchmark.
 - Performance:
     - [ ] Explore xla SVD from jax for faster ``null_space()``.
 - Enchancements:
-    - [ ] Work on typing.
-    - [ ] Review code style and structure.
-    - [ ] Reslove imports.
+    - [x] Work on typing.
+    - [*] Review code style and structure.
+    - [*] Reslove imports.
     - [ ] Documentation.
     - [ ] Polish README.md
-    - [ ] Sort out params.
+    - [x] Sort out params.
 - Bright future:
     - [ ] persistent path homology
     - [ ] Path homology over rings + SymPy integration
